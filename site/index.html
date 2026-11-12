@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Studiebijbel-wiki · Elohim YHWH Studiebijbel</title>
+<meta name="description" content="Wiki van personen, steden, landen en plaatsen uit de Elohim YHWH Studiebijbel, met verzen uit de tekst.">
+<link rel="stylesheet" href="/style.css?v=3">
+</head>
+<body>
+<header class="top">
+  <a href="#/" class="logo">Studiebijbel<span>-wiki</span></a>
+  <form id="zoekform" class="zoek" role="search" autocomplete="off">
+    <input id="zoek" type="search" placeholder="Zoek een naam of woord…" aria-label="Zoeken">
+    <button type="submit" aria-label="Zoeken">Zoek</button>
+  </form>
+</header>
+<nav class="tabs" id="tabs">
+  <a href="#/" data-t="">Start</a>
+  <a href="#/lijst/persoon" data-t="persoon">Personen</a>
+  <a href="#/lijst/stad" data-t="stad">Steden</a>
+  <a href="#/lijst/land" data-t="land">Landen</a>
+  <a href="#/lijst/plaats" data-t="plaats">Plaatsen</a>
+  <a href="#/lijst/anders" data-t="anders">Volken</a>
+  <a href="#/over" data-t="over">Over</a>
+</nav>
+<main id="main"><p class="laden">De wiki wordt geladen…</p></main>
+<div id="pop" class="pop" hidden>
+  <div class="pop-bg" data-close></div>
+  <div class="pop-box" role="dialog" aria-modal="true" aria-labelledby="popTitel">
+    <button class="pop-x" data-close aria-label="Sluiten">×</button>
+    <div id="popInhoud"></div>
+  </div>
+</div>
+<footer class="voet" id="voet"></footer>
+<script src="/app.js?v=4"></script>
+</body>
+</html>

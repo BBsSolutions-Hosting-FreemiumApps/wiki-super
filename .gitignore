@@ -1,0 +1,7 @@
+build/tmp/
+build/shots/
+deploy/update-index*.js
+.env
+.env.*
+*.pem
+*.key
