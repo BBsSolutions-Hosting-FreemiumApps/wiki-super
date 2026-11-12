@@ -1,0 +1,70 @@
+:root{--bg:#fbf8f2;--fg:#1f1b16;--muted:#6b6257;--line:#e4dccd;--acc:#7a3e12;--acc2:#a5541b;--card:#fff;--hl:#fff1d6;
+--persoon:#2e5d8a;--stad:#7a3e12;--land:#2f6b3a;--plaats:#6a4c93;--anders:#6b6257}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:18px/1.6 Georgia,"Times New Roman",serif}
+a{color:var(--acc)}
+.top{position:sticky;top:0;z-index:5;display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;padding:.6rem 1rem;background:#2b2118;color:#fff}
+.logo{color:#fff;text-decoration:none;font-weight:bold;font-size:1.15rem;white-space:nowrap}
+.logo span{color:#e9b77a}
+.zoek{flex:1;display:flex;min-width:220px}
+.zoek input{flex:1;font-size:16px;padding:.5rem .7rem;border:0;border-radius:6px 0 0 6px;min-width:0}
+.zoek button{font-size:16px;padding:.5rem .9rem;border:0;border-radius:0 6px 6px 0;background:#e9b77a;color:#2b2118;font-weight:bold;cursor:pointer}
+.tabs{display:flex;gap:.25rem;overflow-x:auto;padding:.4rem .6rem;background:#f1eadc;border-bottom:1px solid var(--line);font-family:system-ui,sans-serif;font-size:15px}
+.tabs a{padding:.35rem .7rem;border-radius:999px;text-decoration:none;color:var(--fg);white-space:nowrap}
+.tabs a.actief{background:var(--acc);color:#fff}
+main{max-width:860px;margin:0 auto;padding:1rem 1rem 3rem}
+h1{font-size:1.7rem;line-height:1.25;margin:.4rem 0 .3rem}
+h2{font-size:1.2rem;margin:1.6rem 0 .5rem;border-bottom:1px solid var(--line);padding-bottom:.2rem}
+.sub,.klein{color:var(--muted);font-size:.9rem}
+.laden{color:var(--muted)}
+.badge{display:inline-block;font:600 12px/1 system-ui,sans-serif;text-transform:uppercase;letter-spacing:.04em;padding:.3rem .5rem;border-radius:4px;color:#fff;background:var(--anders);vertical-align:middle}
+.b-persoon{background:var(--persoon)}.b-stad{background:var(--stad)}.b-land{background:var(--land)}.b-plaats{background:var(--plaats)}
+.kaarten{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.6rem;padding:0;list-style:none}
+.kaarten li a{display:block;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:.6rem .8rem;text-decoration:none;color:var(--fg);height:100%}
+.kaarten li a:hover{border-color:var(--acc2)}
+.kaarten b{display:block}
+.kaarten small{color:var(--muted);font-size:.85rem;display:block;line-height:1.35}
+.typen{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.6rem}
+.typen a{display:block;background:var(--anders);padding:.8rem;border-radius:8px;color:#fff;text-decoration:none;font-family:system-ui,sans-serif}
+.typen a b{font-size:1.5rem;display:block}
+.letters{display:flex;flex-wrap:wrap;gap:.2rem;font-family:system-ui,sans-serif;margin:.5rem 0}
+.letters a{padding:.2rem .5rem;border:1px solid var(--line);border-radius:4px;text-decoration:none;background:#fff}
+.letters a.actief{background:var(--acc);color:#fff;border-color:var(--acc)}
+.feit{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--acc2);border-radius:6px;padding:.5rem .8rem;margin:.5rem 0}
+.feit .l{font:600 13px system-ui,sans-serif;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+blockquote{margin:.3rem 0 0;padding:0 0 0 .8rem;border-left:2px solid var(--line);color:#3b342c;white-space:pre-line}
+.ref{font-family:system-ui,sans-serif;font-size:.85rem;white-space:nowrap}
+.vers{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:.6rem .9rem;margin:.5rem 0}
+.vers.doel{border-color:var(--acc2);box-shadow:0 0 0 2px var(--hl)}
+.vers .vr{font:600 14px system-ui,sans-serif;color:var(--acc)}
+.vt{white-space:normal}
+.vt .rg{display:block}
+.vt .in{display:block;padding-left:1.4rem}
+.sup{color:var(--muted);font-style:italic}
+.gl{color:var(--muted);font-size:.85em}
+.nm{color:inherit;text-decoration:none;border-bottom:2px dotted var(--acc2);background:linear-gradient(transparent 60%,var(--hl) 60%);cursor:pointer;padding:0 1px}
+.nm:hover,.nm:focus{background:var(--hl);outline:none}
+mark{background:#ffe08a}
+.kop{font-weight:bold;color:var(--acc);margin-top:1rem}
+.nav{display:flex;justify-content:space-between;gap:.5rem;font-family:system-ui,sans-serif;margin:1rem 0}
+.knop{display:inline-block;padding:.45rem .9rem;border-radius:6px;background:var(--acc);color:#fff;text-decoration:none;font:600 15px system-ui,sans-serif;border:0;cursor:pointer}
+.knop.licht{background:#efe5d3;color:var(--fg)}
+.let{background:#fff7e8;border:1px solid #efd9ad;border-radius:6px;padding:.5rem .8rem;font-size:.92rem;margin:.6rem 0}
+.notitie{background:#f6f2ff;border:1px solid #ddd2f3;border-radius:6px;padding:.5rem .8rem;margin:.5rem 0;font-size:.95rem}
+.notitie .k{font:600 12px system-ui,sans-serif;color:#5b4a86}
+.lijst{padding-left:1.1rem}
+.lijst li{margin:.2rem 0}
+.pills{display:flex;flex-wrap:wrap;gap:.35rem;padding:0;list-style:none}
+.pills a{display:inline-block;padding:.2rem .6rem;border:1px solid var(--line);border-radius:999px;background:#fff;text-decoration:none;font-size:.95rem}
+.pop[hidden]{display:none}
+.pop{position:fixed;inset:0;z-index:20}
+.pop-bg{position:absolute;inset:0;background:rgba(20,15,10,.45)}
+.pop-box{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,94vw);max-height:84vh;overflow:auto;background:var(--bg);border-radius:12px;padding:1rem 1.1rem 1.2rem;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+.pop-x{position:absolute;right:.4rem;top:.3rem;font-size:1.8rem;line-height:1;background:none;border:0;cursor:pointer;color:var(--muted);padding:.2rem .5rem}
+.pop h3{margin:.1rem 2rem .3rem 0;font-size:1.35rem}
+@media (max-width:600px){body{font-size:17px}.pop-box{left:0;right:0;top:auto;bottom:0;transform:none;width:100%;max-height:82vh;border-radius:14px 14px 0 0}h1{font-size:1.45rem}}
+.voet{max-width:860px;margin:0 auto;padding:1.2rem 1rem 2rem;border-top:1px solid var(--line);color:var(--muted);font-size:.85rem}
+.voet p{margin:.2rem 0}
+.res{margin:.35rem 0;padding:.4rem 0;border-bottom:1px solid var(--line)}
+.typen a.b-persoon{background:var(--persoon)}.typen a.b-stad{background:var(--stad)}.typen a.b-land{background:var(--land)}.typen a.b-plaats{background:var(--plaats)}
