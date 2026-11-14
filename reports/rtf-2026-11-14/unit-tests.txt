@@ -1,6 +1,7 @@
 test_default_prepares_without_network (test_deploy_preview.PreviewSafetyTests.test_default_prepares_without_network) ... ok
 test_deployment_writes_only_isolated_preview (test_deploy_preview.PreviewSafetyTests.test_deployment_writes_only_isolated_preview) ... ok
 test_hash_failure_prevents_all_network_and_writes (test_deploy_preview.PreviewSafetyTests.test_hash_failure_prevents_all_network_and_writes) ... ok
+test_multipart_random_boundary_is_not_a_production_change (test_deploy_preview.PreviewSafetyTests.test_multipart_random_boundary_is_not_a_production_change) ... ok
 test_binary_destinations_do_not_consume_following_text (test_rtf_parser.RTFParserTests.test_binary_destinations_do_not_consume_following_text) ... ok
 test_destinations_fields_and_lines (test_rtf_parser.RTFParserTests.test_destinations_fields_and_lines) ... ok
 test_font_families_variants_default_and_point_size (test_rtf_parser.RTFParserTests.test_font_families_variants_default_and_point_size) ... ok
@@ -25,6 +26,6 @@ test_multiline_headers_split_body_once (test_update.SourceGroupingTests.test_mul
 test_verse_subdivisions_keep_source (test_update.SourceGroupingTests.test_verse_subdivisions_keep_source) ... ok
 
 ----------------------------------------------------------------------
-Ran 25 tests in 6.497s
+Ran 26 tests in 7.378s
 
 OK

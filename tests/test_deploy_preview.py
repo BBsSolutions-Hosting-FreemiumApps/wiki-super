@@ -8,9 +8,10 @@ import tempfile
 import unittest
 from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'build'))
-from deploy_preview import deploy, PRODUCTION_NS
+from deploy_preview import deploy, PRODUCTION_NS, canonical_script
 
 class Response(io.BytesIO):
+    headers={}
     def __enter__(self):return self
     def __exit__(self,*args):self.close()
 
@@ -21,6 +22,14 @@ class PreviewSafetyTests(unittest.TestCase):
         raw=b'{"items":[]}'
         (p/'data/index.json').write_bytes(raw)
         (p/'worker/release.json').write_text(json.dumps({'prefix':'rtf-123456/','files':{'index.json':hashlib.sha256(raw).hexdigest()}}))
+
+    def test_multipart_random_boundary_is_not_a_production_change(self):
+        def message(boundary,script):
+            return (f'--{boundary}\r\nContent-Disposition: form-data; name="worker.js"; filename="worker.js"\r\nContent-Type: application/javascript+module\r\n\r\n{script}\r\n--{boundary}--\r\n').encode()
+        a=canonical_script(message('first','same code'),'multipart/form-data; boundary=first')
+        b=canonical_script(message('second','same code'),'multipart/form-data; boundary=second')
+        changed=canonical_script(message('second','changed code'),'multipart/form-data; boundary=second')
+        self.assertEqual(a,b);self.assertNotEqual(a,changed)
 
     def test_hash_failure_prevents_all_network_and_writes(self):
         with tempfile.TemporaryDirectory() as t,patch('urllib.request.urlopen') as net:

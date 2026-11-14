@@ -6,6 +6,8 @@ production Worker is read solely to verify its content has not changed.
 """
 from __future__ import annotations
 import argparse
+from email.parser import BytesParser
+from email.policy import default as email_policy
 import hashlib
 import json
 import os
@@ -19,6 +21,21 @@ SCRIPT='studieb-wiki-rtf-preview'
 TITLE='studieb-wiki-rtf-preview-data'
 PRODUCTION='studieb-wiki'
 PRODUCTION_NS='82097222907c44a4a0d5db8dbb453eef'
+
+
+def canonical_script(raw, content_type):
+    """Ignore random multipart boundaries, retaining every module name and byte."""
+    if not content_type.lower().startswith('multipart/'):
+        return raw
+    message=BytesParser(policy=email_policy).parsebytes(('Content-Type: '+content_type+'\r\nMIME-Version: 1.0\r\n\r\n').encode()+raw)
+    if not message.is_multipart():raise ValueError('Invalid Cloudflare module response')
+    modules=[]
+    for part in message.iter_parts():
+        name=part.get_filename() or part.get_param('name',header='content-disposition')
+        if not name:raise ValueError('Cloudflare module without a name')
+        payload=part.get_payload(decode=True)
+        modules.append((name,hashlib.sha256(payload).hexdigest()))
+    return json.dumps(sorted(modules),separators=(',',':')).encode()
 
 
 def deploy(root, execute=False):
@@ -43,10 +60,12 @@ def deploy(root, execute=False):
         if isinstance(body,(dict,list)):body=json.dumps(body,separators=(',',':')).encode()
         req=urllib.request.Request('https://api.cloudflare.com/client/v4'+path,data=body,headers={'Authorization':'Bearer '+token,'Content-Type':content_type},method=method)
         try:
-            with urllib.request.urlopen(req,timeout=60) as r:data=r.read()
+            with urllib.request.urlopen(req,timeout=60) as r:
+                data=r.read()
+                remote_content_type=r.headers.get('Content-Type','')
         except urllib.error.HTTPError as e:
             raise RuntimeError(f'Cloudflare HTTP {e.code} bij {method} {path}') from None
-        if raw:return data
+        if raw:return canonical_script(data,remote_content_type)
         doc=json.loads(data)
         if not doc.get('success'):raise RuntimeError('Cloudflare-aanroep mislukt: '+method+' '+path)
         return doc
