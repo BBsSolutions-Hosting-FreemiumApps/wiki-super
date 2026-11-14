@@ -19,7 +19,7 @@ Dezelfde aangeleverde RTF als bij wiki-normaal is verwerkt. SHA-256: `4cf082bd41
 | Bestaande feiten met citaten behouden | 978 |
 | Citaten bij nauwkeuriger vers geplaatst | 14 |
 | Historische citaten zichtbaar gemarkeerd | 9 |
-| Regressietests | 25 geslaagd |
+| Regressietests | 26 geslaagd |
 | Browsercontroles | 14 geslaagd |
 | Bestanden identiek bij herhaalde conversie | 341 |
 
@@ -62,4 +62,81 @@ De publicatie is voorbereid voor de afzonderlijke Worker **studieb-wiki-rtf-prev
 
 De Composio-verbinding werd actief, maar de eerste API-aanroep mislukte doordat de beperkte API-token als X-Auth-Key werd verstuurd (Cloudflare 6103). De rechtstreekse API is vanuit deze uitvoeromgeving door de netwerkproxy geblokkeerd. Daarom is een aparte GitHub Actions-workflow toegevoegd die het juiste Bearer-formaat gebruikt. Daarvoor moet de gebruiker één repositorysecret **CLOUDFLARE_API_TOKEN** in het beveiligde GitHub-scherm invullen.
 
-**De preview is bij het opstellen van dit verslag nog niet op Cloudflare gepubliceerd.** De bestaande productie-Worker en productiedata zijn niet gewijzigd. Het concrete preview-adres verschijnt na een geslaagde workflow in het Actions-overzicht en `deployment.json`. Daarna kan de gebruiker de preview beoordelen voordat productie wordt bijgewerkt.
+**De aparte preview is gepubliceerd:** [https://studieb-wiki-rtf-preview.ecodorpgezocht.workers.dev](https://studieb-wiki-rtf-preview.ecodorpgezocht.workers.dev). De [GitHub Actions-workflow](https://github.com/BBsSolutions-Hosting-FreemiumApps/wiki-super/actions/runs/43610676948) is succesvol afgerond. Het [publicatiebewijs](deployment.json) bevat de namespace, de releaseprefix en de controle-uitkomsten.
+
+Alle **341 opgeslagen databestanden** zijn via de Cloudflare-API op SHA-256 gecontroleerd. De productie-Worker is vóór en na de preview-publicatie op alle modulebytes vergeleken; die broncode is ongewijzigd. De laatste publicatie hergebruikte de volledige bestaande previewrelease en deed 0 nieuwe KV-schrijfacties.
+
+**Beperking:** Cloudflare geeft de Python HTTP-testclient fout 1010; de cloudbrowser kon geen toegang tot de pagina krijgen. Daarom staat de openbare browsercontrole als **geblokkeerd**, niet als geslaagd. De 14 browsercontroles en de HTTP-controle van alle 341 bestanden zijn lokaal op dezelfde release geslaagd; alle opgeslagen Cloudflare-data is bovendien onafhankelijk via de API bevestigd. De gebruiker kan de online preview openen en per vers **Vergelijk vorige versie** kiezen. Productie is nog niet naar deze update omgezet.
+
+## Versrecords per boek
+
+Dit zijn technische records, inclusief herhaalde en parallelle bronverwijzingen; de aantallen zijn geen nieuwe canonieke versnummering.
+
+| Boek | Vorige versie | Huidige versie | Toegevoegd | Bestaande tekst bijgewerkt |
+| --- | ---: | ---: | ---: | ---: |
+| Genesis | 1479 | 1542 | 63 | 123 |
+| Exodus | 1147 | 1216 | 69 | 55 |
+| Leviticus | 851 | 859 | 8 | 3 |
+| Numeri | 1244 | 1286 | 42 | 25 |
+| Deuteronomium | 160 | 959 | 799 | 38 |
+| Jozua | 583 | 661 | 78 | 31 |
+| Richteren | 593 | 620 | 27 | 3 |
+| Ruth | 85 | 85 | 0 | 0 |
+| 1 Samu-el | 799 | 812 | 13 | 7 |
+| 2 Samu-el | 684 | 697 | 13 | 22 |
+| 1 Koningen | 799 | 820 | 21 | 42 |
+| 2 Koningen | 696 | 731 | 35 | 34 |
+| 1 Kronieken | 657 | 725 | 68 | 37 |
+| 2 Kronieken | 785 | 826 | 41 | 56 |
+| Ezra | 251 | 284 | 33 | 10 |
+| Nehemia | 373 | 414 | 41 | 10 |
+| Esther | 167 | 167 | 0 | 0 |
+| Job | 215 | 1071 | 856 | 25 |
+| Psalm | 199 | 203 | 4 | 5 |
+| Spreuken | 874 | 915 | 41 | 23 |
+| Prediker | 214 | 222 | 8 | 50 |
+| Hooglied | 112 | 117 | 5 | 15 |
+| Jesaja | 1251 | 1291 | 40 | 20 |
+| Jeremia | 1331 | 1367 | 36 | 24 |
+| Klaagliederen | 154 | 154 | 0 | 0 |
+| Ezechi-el | 1272 | 1286 | 14 | 9 |
+| Dani-el | 268 | 357 | 89 | 11 |
+| Hosea | 197 | 197 | 0 | 8 |
+| Jo-el | 73 | 73 | 0 | 8 |
+| Amos | 146 | 146 | 0 | 7 |
+| Obadja | 21 | 21 | 0 | 0 |
+| Jona | 48 | 48 | 0 | 1 |
+| Micha | 107 | 108 | 1 | 3 |
+| Nahum | 47 | 47 | 0 | 0 |
+| Habakuk | 56 | 56 | 0 | 2 |
+| Sefanja | 53 | 53 | 0 | 0 |
+| Haggaï | 38 | 38 | 0 | 0 |
+| Zacharia | 207 | 211 | 4 | 2 |
+| Maleachi | 54 | 55 | 1 | 1 |
+| Mattheus | 917 | 1077 | 160 | 244 |
+| Markus | 509 | 684 | 175 | 143 |
+| Lukas | 1025 | 1156 | 131 | 191 |
+| Johannes | 737 | 886 | 149 | 183 |
+| Handelingen | 725 | 1006 | 281 | 105 |
+| Romeinen | 433 | 434 | 1 | 1 |
+| 1 Korinthie-ers | 433 | 437 | 4 | 2 |
+| 2 Korinthie-ers | 254 | 255 | 1 | 1 |
+| Galaten | 149 | 149 | 0 | 0 |
+| Efezie-ers | 155 | 155 | 0 | 0 |
+| Filippie-ers | 104 | 104 | 0 | 0 |
+| Kolossers | 94 | 95 | 1 | 1 |
+| 1 Thessalonikers | 88 | 89 | 1 | 1 |
+| 2 Thessalonikers | 47 | 47 | 0 | 0 |
+| 1 Timotheus | 113 | 113 | 0 | 10 |
+| 2 Timotheus | 82 | 83 | 1 | 1 |
+| Titus | 46 | 46 | 0 | 0 |
+| Filémon | 25 | 25 | 0 | 0 |
+| Hebree-en | 300 | 303 | 3 | 2 |
+| Jakobus | 107 | 108 | 1 | 3 |
+| 1 Petrus | 104 | 105 | 1 | 1 |
+| 2 Petrus | 61 | 61 | 0 | 1 |
+| 1 Johannes | 105 | 105 | 0 | 0 |
+| 2 Johannes | 13 | 13 | 0 | 0 |
+| 3 Johannes | 15 | 15 | 0 | 0 |
+| Judas | 25 | 25 | 0 | 0 |
+| Openbaring | 340 | 405 | 65 | 16 |

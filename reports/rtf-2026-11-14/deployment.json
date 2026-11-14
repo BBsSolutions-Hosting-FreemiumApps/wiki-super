@@ -1,0 +1,21 @@
+{
+  "script": "studieb-wiki-rtf-preview",
+  "namespace_title": "studieb-wiki-rtf-preview-data",
+  "prefix": "rtf-c13e0a4e9df20358184a/",
+  "files": 341,
+  "deployed": true,
+  "url": "https://studieb-wiki-rtf-preview.ecodorpgezocht.workers.dev",
+  "account_id": "be996a0bc83f80e665b5c8ad56101732",
+  "namespace_id": "2f554aaff7ec43e08dda4e5909faa199",
+  "api_files_verified": 341,
+  "production_unchanged": true,
+  "production_worker_sha256": "1ac710519d45ac166036c356da1601ebad505a7728041705a21e4a3a26bd4c21",
+  "kv_upload_reused": true,
+  "kv_values_written": 0,
+  "public_files_verified": 0,
+  "public_assets_verified": 0,
+  "public_verification": "blocked",
+  "public_verification_reason": "Cloudflare 1010 blocked the HTTP test client; cloud browser access unavailable. Local browser tests passed; online UI review remains pending.",
+  "workflow_run_id": 43610676948,
+  "workflow_url": "https://github.com/BBsSolutions-Hosting-FreemiumApps/wiki-super/actions/runs/43610676948"
+}

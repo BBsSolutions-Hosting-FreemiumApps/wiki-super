@@ -2,6 +2,7 @@
 
 De bijgewerkte versie staat op branch `update-rtf-2026-11-14`, vanaf `main` (`3d781dc`). De nieuwe converter leest de RTF rechtstreeks, behoudt bestaande namen en versadressen en maakt een herstelkopie en controleverslag.
 
+- [Open de gepubliceerde RTF-preview](https://studieb-wiki-rtf-preview.ecodorpgezocht.workers.dev)
 - [RTF-updateprocedure](docs/RTF-UPDATES.md)
 - [Controleverslag](reports/rtf-2026-11-14/EINDRAPPORT.md)
 - Vergelijking per vers: **Vergelijk vorige versie**

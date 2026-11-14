@@ -62,6 +62,14 @@ Gebruik de oude `deploy/*.js` niet voor RTF-updates: die zijn een historisch v9-
 
 Maak in GitHub bij Settings → Secrets and variables → Actions één repositorysecret met de naam `CLOUDFLARE_API_TOKEN`. Plak uitsluitend de Cloudflare-tokenwaarde in het beveiligde secretveld. Het token heeft binnen het juiste account Workers Scripts: Edit, Workers KV Storage: Edit en Account Settings: Read nodig.
 
-Workflow **Cloudflare RTF preview** start op de eerste push van de updatebranch en kan daarna opnieuw worden uitgevoerd. Hij controleert de volledige RTF en bestaande identiteiten, vindt het account via de bekende bestaande KV-namespace, schrijft alleen naar de afzonderlijke preview-namespace en Worker, en controleert alle 341 publiek opgeleverde datafiles op hun SHA-256. De productie-Worker wordt alleen gelezen om te bevestigen dat die niet veranderde. Het concrete preview-adres verschijnt in het workflowoverzicht en `deployment.json`.
+Workflow **Cloudflare RTF preview** start op de eerste push van de updatebranch en kan daarna opnieuw worden uitgevoerd. Hij controleert de volledige RTF en bestaande identiteiten, vindt het account via de bekende bestaande KV-namespace, schrijft alleen naar de afzonderlijke preview-namespace en Worker, en controleert alle 341 opgeslagen datafiles via de Cloudflare-API op hun SHA-256. De productie-Worker wordt alleen gelezen om te bevestigen dat die niet veranderde. Het concrete preview-adres verschijnt in het workflowoverzicht en `deployment.json`.
 
 De Composio-koppeling was in deze sessie actief, maar stuurde de beperkte API-token als `X-Auth-Key`; Cloudflare gaf daarvoor fout 6103. De Actions-workflow gebruikt het juiste `Authorization: Bearer`-formaat. Er is geen Global API key nodig.
+
+## Huidige preview
+
+[https://studieb-wiki-rtf-preview.ecodorpgezocht.workers.dev](https://studieb-wiki-rtf-preview.ecodorpgezocht.workers.dev)
+
+De publicatie is bevestigd in [de geslaagde workflow](https://github.com/BBsSolutions-Hosting-FreemiumApps/wiki-super/actions/runs/43610676948). De huidige workflow gebruikt `--api-verification-only`: Cloudflare blokkeert de gewone Python HTTP-client met fout 1010. Zo worden de data wel volledig via de API gecontroleerd en wordt de openbare UI-controle eerlijk als geblokkeerd gerapporteerd. De geslaagde lokale browsercontrole staat in het eindverslag. Controleer de preview zelf in de browser voordat productie wordt bijgewerkt.
+
+Een herhaalde publicatie controleert aanwezige KV-waarden en uploadt alleen afwijkende of ontbrekende waarden. Het geheim staat in GitHub Actions; toekomstige updates hoeven het token niet opnieuw in de chat op te vragen.

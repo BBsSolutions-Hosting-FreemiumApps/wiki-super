@@ -2,8 +2,14 @@
   "data_verified": true,
   "browser_verified": true,
   "idempotence_verified": true,
-  "unit_tests": 25,
-  "preview_deployed": false,
+  "unit_tests": 26,
+  "preview_deployed": true,
   "production_deployed": false,
-  "required_secret": "CLOUDFLARE_API_TOKEN"
+  "required_secret": null,
+  "preview_url": "https://studieb-wiki-rtf-preview.ecodorpgezocht.workers.dev",
+  "backend_data_verified": true,
+  "api_files_verified": 341,
+  "production_unchanged": true,
+  "online_ui_verified": false,
+  "online_ui_verification": "blocked"
 }
