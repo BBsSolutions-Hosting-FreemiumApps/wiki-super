@@ -5,3 +5,10 @@ deploy/update-index*.js
 .env.*
 *.pem
 *.key
+
+__pycache__/
+*.py[cod]
+work/
+dist/
+node_modules/
+.wrangler/

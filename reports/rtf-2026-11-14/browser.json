@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "checks": [
+    "Home and all 1803 names load",
+    "Genesis 2 and original source link",
+    "Eden popup keeps existing identity",
+    "Independent notes still displayed",
+    "All 66 books render",
+    "New verse uses source reading order",
+    "Historical fact visibly marked",
+    "Numeral identities remain separate",
+    "Full source, formatting, color toggle and boundary",
+    "Old and new reading views compare side by side",
+    "Whole text search",
+    "All data files match immutable release manifest",
+    "Mobile layout, source route and popup",
+    "No JavaScript or resource errors"
+  ],
+  "errors": []
+}

@@ -1,3 +1,16 @@
+# RTF 2026-update
+
+De bijgewerkte versie staat op branch `update-rtf-2026-11-14`, vanaf `main` (`3d781dc`). De nieuwe converter leest de RTF rechtstreeks, behoudt bestaande namen en versadressen en maakt een herstelkopie en controleverslag.
+
+- [RTF-updateprocedure](docs/RTF-UPDATES.md)
+- [Controleverslag](reports/rtf-2026-11-14/EINDRAPPORT.md)
+- Vergelijking per vers: **Vergelijk vorige versie**
+- Volledige bron met opmaak: **Oorspronkelijke RTF**
+
+Onderstaande beschrijving documenteert de oorspronkelijke v9-opbouw en publicatie. Gebruik voor nieuwe updates de RTF-procedure hierboven.
+
+---
+
 # Studiebijbel-wiki (studieb-wiki)
 
 Wiki van personen, steden, landen, plaatsen en volken uit de **Elohim YHWH Studiebijbel** (v9).

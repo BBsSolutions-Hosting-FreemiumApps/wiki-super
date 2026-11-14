@@ -68,3 +68,7 @@ mark{background:#ffe08a}
 .voet p{margin:.2rem 0}
 .res{margin:.35rem 0;padding:.4rem 0;border-bottom:1px solid var(--line)}
 .typen a.b-persoon{background:var(--persoon)}.typen a.b-stad{background:var(--stad)}.typen a.b-land{background:var(--land)}.typen a.b-plaats{background:var(--plaats)}
+
+.rawline{display:flex;gap:.6rem;align-items:baseline;min-height:1.5em}.lineno{min-width:4em;text-align:right;color:var(--muted);font:11px system-ui,sans-serif}.rawtext{white-space:pre-wrap;overflow-wrap:anywhere;min-width:0}.rawline.gekozen{outline:1px solid var(--acc2)}.rtf.zonderkleuren .rawtext span{color:inherit!important;background:transparent!important;text-decoration-color:currentColor!important}
+
+.vergelijk{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}.vergelijk section{min-width:0}.vergelijk .vt{overflow-wrap:anywhere}@media(max-width:650px){.vergelijk{grid-template-columns:1fr}}

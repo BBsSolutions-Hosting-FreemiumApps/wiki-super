@@ -1,0 +1,9 @@
+{
+  "data_verified": true,
+  "browser_verified": true,
+  "idempotence_verified": true,
+  "unit_tests": 25,
+  "preview_deployed": false,
+  "production_deployed": false,
+  "required_secret": "CLOUDFLARE_API_TOKEN"
+}

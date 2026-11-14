@@ -1,0 +1,30 @@
+test_default_prepares_without_network (test_deploy_preview.PreviewSafetyTests.test_default_prepares_without_network) ... ok
+test_deployment_writes_only_isolated_preview (test_deploy_preview.PreviewSafetyTests.test_deployment_writes_only_isolated_preview) ... ok
+test_hash_failure_prevents_all_network_and_writes (test_deploy_preview.PreviewSafetyTests.test_hash_failure_prevents_all_network_and_writes) ... ok
+test_binary_destinations_do_not_consume_following_text (test_rtf_parser.RTFParserTests.test_binary_destinations_do_not_consume_following_text) ... ok
+test_destinations_fields_and_lines (test_rtf_parser.RTFParserTests.test_destinations_fields_and_lines) ... ok
+test_font_families_variants_default_and_point_size (test_rtf_parser.RTFParserTests.test_font_families_variants_default_and_point_size) ... ok
+test_groups_colors_and_escaped_characters (test_rtf_parser.RTFParserTests.test_groups_colors_and_escaped_characters) ... ok
+test_real_genesis2_has_styled_names (test_rtf_parser.RTFParserTests.test_real_genesis2_has_styled_names) ... ok
+test_unbalanced_groups_fail_closed (test_rtf_parser.RTFParserTests.test_unbalanced_groups_fail_closed) ... ok
+test_unicode_fallback_and_codepage (test_rtf_parser.RTFParserTests.test_unicode_fallback_and_codepage) ... ok
+test_unicode_font_names_and_hidden_alternate_names (test_rtf_parser.RTFParserTests.test_unicode_font_names_and_hidden_alternate_names) ... ok
+test_unicode_surrogates (test_rtf_parser.RTFParserTests.test_unicode_surrogates) ... ok
+test_empty_duplicate_reserved (test_update.IdentityTests.test_empty_duplicate_reserved) ... ok
+test_existing_ids_append_and_reordered_body (test_update.IdentityTests.test_existing_ids_append_and_reordered_body) ... ok
+test_existing_output_is_never_overwritten (test_update.IdentityTests.test_existing_output_is_never_overwritten) ... ok
+test_id_partition_is_stable (test_update.IdentityTests.test_id_partition_is_stable) ... ok
+test_no_global_new_identity (test_update.IdentityTests.test_no_global_new_identity) ... ok
+test_normalized_existing_spelling (test_update.IdentityTests.test_normalized_existing_spelling) ... ok
+test_numerals_stay_distinct (test_update.IdentityTests.test_numerals_stay_distinct) ... ok
+test_old_missing_nonempty_verse_fails (test_update.IdentityTests.test_old_missing_nonempty_verse_fails) ... ok
+test_reserved_id_ignored_on_second_conversion (test_update.IdentityTests.test_reserved_id_ignored_on_second_conversion) ... ok
+test_annotation_and_clean_text_separate (test_update.SourceGroupingTests.test_annotation_and_clean_text_separate) ... ok
+test_braced_parallel_citations_not_new_verses (test_update.SourceGroupingTests.test_braced_parallel_citations_not_new_verses) ... ok
+test_multiline_headers_split_body_once (test_update.SourceGroupingTests.test_multiline_headers_split_body_once) ... ok
+test_verse_subdivisions_keep_source (test_update.SourceGroupingTests.test_verse_subdivisions_keep_source) ... ok
+
+----------------------------------------------------------------------
+Ran 25 tests in 6.605s
+
+OK

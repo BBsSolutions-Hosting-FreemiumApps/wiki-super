@@ -1,7 +1,7 @@
 // Studiebijbel-wiki: alles komt uit de tekst van de Elohim YHWH Studiebijbel (v9). Geen tracking, geen AI-antwoorden.
 (function(){
 'use strict';
-var DV='2';
+var DV='rtf-2026-11-14';
 var $=function(s,r){return (r||document).querySelector(s)};
 var main=$('#main');
 var IDX=null, BYK={}, BASE={}, META=null, NOTES=null, CH={}, EB={};
@@ -15,7 +15,7 @@ function get(f){return fetch('/data/'+f+'?v='+DV).then(function(r){if(!r.ok)thro
 function meta(){return META?Promise.resolve(META):get('meta.json').then(function(m){META=m;return m})}
 function notes(){return NOTES?Promise.resolve(NOTES):get('notes.json').then(function(n){NOTES={};n.forEach(function(x){NOTES[x.n]=x});NOTES._list=n;return NOTES})}
 function chunk(i){return CH[i]?Promise.resolve(CH[i]):(CH[i]=get('v'+i+'.json').then(function(c){CH[i]=c;return c}))}
-function verse(s){return meta().then(function(m){return chunk(Math.floor(s/m.chunk)).then(function(c){return c[s%m.chunk]})})}
+function verse(s){return meta().then(function(m){if(!Number.isInteger(s)||s<0||s>=m.nv)throw new Error('Onbekend vers');return chunk(Math.floor(s/m.chunk)).then(function(c){return c[s%m.chunk]})})}
 function ent(k){var b=fnv(k);return (EB[b]?Promise.resolve(EB[b]):get('e'+b+'.json').then(function(x){EB[b]=x;return x})).then(function(x){return x[k]})}
 function refOf(s){var r=META.refs;return META.books[r[3*s]]+' '+r[3*s+1]+':'+r[3*s+2]}
 function badge(t){return '<span class="badge b-'+esc(t)+'">'+esc(TYPE[t]||t)+'</span>'}
@@ -114,7 +114,7 @@ function tekstZoek(q){
   }).catch(function(e){box.innerHTML='<p>Zoeken lukte niet: '+esc(e.message)+'</p>'});
 }
 function feitHtml(f,k){
-  return '<div class="feit"><div class="l">'+esc(f.l)+'</div><div>'+(f.k?elink(f.k,f.v):esc(f.v))+' — '+vlink(f.s,f.r)+'</div>'+(f.q&&f.q.length?quote(f.q,k):'')+'</div>';
+  return '<div class="feit"><div class="l">'+esc(f.l)+'</div><div>'+(f.k?elink(f.k,f.v):esc(f.v))+' — '+vlink(f.s,f.r)+'</div>'+(f.legacy?'<p class="klein">Citaat uit de eerdere wiki; niet letterlijk bevestigd in de nieuwe RTF. Controleer de bron.</p>':'')+(f.q&&f.q.length?quote(f.q,k):'')+'</div>';
 }
 function letop(d){
   var h='';
@@ -164,18 +164,21 @@ function disamb(b){
 function versPage(s){
   setTab('');s=+s;main.innerHTML='<p class="laden">Laden…</p>';
   meta().then(function(m){
-    var from=Math.max(0,s-4),to=Math.min(m.nv-1,s+4),ids=[];for(var i=from;i<=to;i++)ids.push(i);
+    if(!Number.isInteger(s)||s<0||s>=m.nv)throw new Error('Onbekend vers');
+    var order=m.reading_order||m.order||Array.from({length:m.nv},function(_,i){return i}),pos=order.indexOf(s);
+    if(pos<0){main.innerHTML='<h1>'+esc(refOf(s))+'</h1><p>Dit bestaande webadres was een leeg dubbel record in de eerdere wiki. Zoek op de versverwijzing voor de huidige tekst.</p>';return}
+    var ids=order.slice(Math.max(0,pos-4),Math.min(order.length,pos+5));
     return Promise.all(ids.map(verse)).then(function(vs){
       title(refOf(s));
       var h='<h1>'+esc(refOf(s))+'</h1><p class="klein">Met de verzen eromheen in de volgorde van de studiebijbel. Klik op een gemarkeerde naam voor uitleg.</p>';
       var lastH=-2;
       vs.forEach(function(v,i){var id=ids[i];
         if(v[1]!==lastH&&v[1]>=0&&m.heads[v[1]]){h+='<div class="kop">'+linkNames(m.heads[v[1]][0])+'</div>';lastH=v[1]}
-        h+='<div class="vers'+(id===s?' doel':'')+'" id="v'+id+'"><div class="vr"><a href="#/v/'+id+'">'+esc(refOf(id))+'</a>'+(v[2]&&v[2].length?' <span class="klein">· vergelijk '+v[2].map(esc).join(', ')+'</span>':'')+'</div><div class="vt">'+fmtVerse(v[0])+'</div></div>';
+        h+='<div class="vers'+(id===s?' doel':'')+'" id="v'+id+'"><div class="vr"><a href="#/v/'+id+'">'+esc(refOf(id))+'</a>'+(v[2]&&v[2].length?' <span class="klein">· vergelijk '+v[2].map(esc).join(', ')+'</span>':'')+' · <a class="ref" href="#/vergelijk/'+id+'">Vergelijk vorige versie</a>'+(v[3]&&v[3].line?' · <a class="ref" href="#/bron/'+v[3].line+'">Oorspronkelijke RTF</a>':'')+'</div><div class="vt">'+fmtVerse(v[0])+'</div></div>';
       });
-      h+='<div id="vnotes"></div><div class="nav"><a class="knop licht" href="#/v/'+Math.max(0,s-9)+'">‹ Eerder</a><a class="knop licht" href="#/v/'+Math.min(m.nv-1,s+9)+'">Verder ›</a></div>';
+      h+='<div id="vnotes"></div><div class="nav"><a class="knop licht" href="#/v/'+order[Math.max(0,pos-9)]+'">‹ Eerder</a><a class="knop licht" href="#/v/'+order[Math.min(order.length-1,pos+9)]+'">Verder ›</a></div>';
       main.innerHTML=h;var el=$('#v'+s);if(el)el.scrollIntoView({block:'center'});
-      notes().then(function(N){var mine=N._list.filter(function(n){return n.s!=null&&n.s>=from&&n.s<=to});
+      notes().then(function(N){var mine=N._list.filter(function(n){return n.s!=null&&ids.indexOf(n.s)>=0});
         if(mine.length)$('#vnotes').innerHTML='<h2>Aantekeningen bij deze verzen</h2>'+mine.map(function(n){return noteHtml(n)}).join('')});
     });
   }).catch(function(e){main.innerHTML='<p>Er ging iets mis: '+esc(e.message)+'</p>'});
@@ -191,11 +194,41 @@ function refZoek(q){
 function over(){
   setTab('over');title('Over deze site');
   main.innerHTML='<h1>Over deze wiki</h1>'+
-  '<p>Deze wiki hoort bij de <b>Elohim YHWH Studiebijbel</b>. Hij is automatisch samengesteld uit de tekst van de studiebijbel (versie 9) en de aantekeningen die erbij horen.</p>'+
+  '<p>Deze wiki hoort bij de <b>Elohim YHWH Studiebijbel</b>. De leestekst is bijgewerkt uit de RTF 2026. De bestaande namen, indelingen, relaties en 1.494 aantekeningen komen uit de eerdere wiki (v9). Historische citaten die niet letterlijk in de nieuwe verstekst teruggevonden zijn, zijn als zodanig gemarkeerd.</p>'+
   '<h2>Waar komt de uitleg vandaan?</h2><ul class="lijst"><li>Elke uitleg staat bij een vers. U kunt dat vers altijd zelf openen.</li><li>Er is niets van buitenaf toegevoegd: geen woordenboek, geen internet en geen AI-teksten.</li><li>“Zoon van”, “vader” en rollen zoals “profeet” of “koning” komen uit zinnen in de tekst, zoals “Kus verwekte Nimrod” of “de profeet Jesaja”.</li><li>Profielen van koningen, nummers achter namen (zoals Seba I en Seba II) en aantekeningen als “13e generatie Adam” staan zo in de studiebijbel.</li><li>Of een naam een persoon, stad, land of plaats is, is afgeleid uit hoe de tekst de naam gebruikt. Dat kan fout zijn. Bij twijfel ziet u een melding.</li><li>Waar de tekst niets zegt over het doel of de rol van iemand, vult de site dat ook niet in.</li></ul>'+
   '<h2>Cijfers</h2><p>'+['persoon','stad','land','plaats','anders'].map(function(t){return (IDX.stats[t]||0)+' '+TYPEMV[t].toLowerCase()}).join(', ')+'.</p>'+
+  '<h2>Oorspronkelijke bron</h2><p>De volledige RTF is inclusief koppen, annotaties en opmaak te raadplegen via <a href="#/bron/1">Oorspronkelijke RTF</a>. De leesweergave volgt de bestaande wiki-regels en laat redactiemarkeringen weg. De bronweergave bewaart deze wel.</p>'+
   '<h2>Privacy</h2><p>Deze site gebruikt geen cookies, geen tracking en geen advertenties.</p>';
 }
+function comparePage(s){
+  setTab('');title('Versies vergelijken');s=Number(s);
+  Promise.all([meta(),get('oldmeta.json'),verse(s)]).then(function(r){
+    var old=r[1],v=r[2];
+    return (s<old.nv?get('oldv'+Math.floor(s/old.chunk)+'.json').then(function(c){return c[s%old.chunk][0]}):Promise.resolve(null)).then(function(before){
+      main.innerHTML='<h1>'+esc(refOf(s))+' vergelijken</h1><p><a href="#/v/'+s+'">Naar huidige leestekst</a>'+(v[3]&&v[3].line?' · <a href="#/bron/'+v[3].line+'">Volledige RTF met opmaak</a>':'')+'</p><div class="vergelijk"><section><h2>Vorige versie</h2>'+(before===null?'<p>Nieuw afzonderlijk vers. Dit gedeelte kan eerder deel hebben uitgemaakt van een groter tekstblok.</p>':'<div class="vt">'+fmtVerse(before)+'</div>')+'</section><section><h2>Huidige RTF</h2><div class="vt">'+fmtVerse(v[0])+'</div></section></div>';window.scrollTo(0,0);
+    });
+  }).catch(function(e){main.innerHTML='<p>'+esc(e.message)+'</p>'});
+}
+
+function sourcePage(line){
+  setTab('over');title('Oorspronkelijke RTF');main.innerHTML='<p class="laden">Bron laden…</p>';
+  meta().then(function(m){
+    if(!m.source)throw new Error('Geen RTF-bron beschikbaar');
+    line=Number(line)||1;line=Math.max(1,Math.min(m.source.lines,Math.floor(line)));
+    var from=Math.max(1,line-4),to=Math.min(m.source.lines,from+44),chunks=[];
+    for(var i=Math.floor((from-1)/1000);i<=Math.floor((to-1)/1000);i++)chunks.push(i);
+    return Promise.all(chunks.map(function(i){return get('r'+i+'.json')})).then(function(data){
+      var h='<h1>Oorspronkelijke RTF</h1><p class="klein">Regels '+from+'–'+to+' van '+m.source.lines+'. Bron: '+esc(m.source.file)+'.</p><p><button class="knop licht" id="bronkleuren">Bronkleuren uit</button></p><div class="rtf" id="rtf">';
+      for(var n=from;n<=to;n++){
+        var ci=chunks.indexOf(Math.floor((n-1)/1000)),row=data[ci][(n-1)%1000];
+        h+='<div class="rawline'+(n===line?' gekozen':'')+'" id="r'+n+'"><a class="lineno" href="#/bron/'+n+'">'+n+'</a><span class="rawtext">'+(row.length?row.map(function(seg){return '<span class="s'+seg[1]+'">'+esc(seg[0])+'</span>'}).join(''):'\u00a0')+'</span></div>';
+      }
+      h+='</div><div class="nav"><a class="knop licht" href="#/bron/'+Math.max(1,from-40)+'">‹ Eerder</a><a class="knop licht" href="#/bron/'+Math.min(m.source.lines,to+1)+'">Verder ›</a></div>';
+      main.innerHTML=h;$('#bronkleuren').onclick=function(){var off=$('#rtf').classList.toggle('zonderkleuren');this.textContent=off?'Bronkleuren aan':'Bronkleuren uit'};window.scrollTo(0,0);
+    });
+  }).catch(function(e){main.innerHTML='<p>'+esc(e.message)+'</p>'});
+}
+
 // ---------- popup ----------
 var pop=$('#pop'),popIn=$('#popInhoud'),lastFocus=null;
 function openPop(k){
@@ -231,6 +264,8 @@ function route(){
   if(p[0]==='v')return versPage(p[1]);
   if(p[0]==='zoek')return zoek(p.slice(1).join('/'));
   if(p[0]==='over')return over();
+  if(p[0]==='bron')return sourcePage(p[1]);
+  if(p[0]==='vergelijk')return comparePage(p[1]);
   if(p[0]==='toeval'){var r=IDX.items[Math.floor(Math.random()*IDX.items.length)];location.replace('#/e/'+encodeURIComponent(r[0]));return}
   home();
 }

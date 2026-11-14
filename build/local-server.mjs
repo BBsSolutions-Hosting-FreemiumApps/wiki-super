@@ -1,11 +1,15 @@
-// Lokale test: draait worker.js met een nep-KV die uit data/ leest.
-import http from 'http'; import fs from 'fs'; import path from 'path'; import url from 'url';
-const root=path.join(path.dirname(url.fileURLToPath(import.meta.url)),'..');
-const w=(await import(path.join(root,'worker','worker.js'))).default;
-const env={DATA:{get:async(k)=>{const f=path.join(root,'data',k.replace('w1/',''));return fs.existsSync(f)?fs.readFileSync(f):null}}};
-http.createServer(async(req,res)=>{
-  const r=await w.fetch(new Request('http://localhost:8787'+req.url,{method:req.method}),env);
-  res.writeHead(r.status,Object.fromEntries(r.headers));
-  const b=r.body; if(!b) return res.end();
-  if(b.pipe) b.pipe(res); else { const buf=Buffer.from(await r.arrayBuffer()); res.end(buf);} 
-}).listen(8787,()=>console.log('http://localhost:8787'));
+// Serve an explicitly selected release with a read-only local KV substitute.
+import http from 'node:http';import fs from 'node:fs';import path from 'node:path';import {pathToFileURL,fileURLToPath} from 'node:url';
+const root=path.resolve(process.argv[2]||path.join(path.dirname(fileURLToPath(import.meta.url)),'..'));
+const port=Number(process.argv[3]||8787),release=JSON.parse(fs.readFileSync(path.join(root,'worker/release.json')));
+const worker=(await import(pathToFileURL(path.join(root,'worker/worker.mjs')))).default;
+const env={DATA:{get:async key=>{
+ if(!key.startsWith(release.prefix))return null;
+ const file=key.slice(release.prefix.length);
+ if(!/^[a-z0-9]+\.json$/.test(file))return null;
+ const p=path.join(root,'data',file);return fs.existsSync(p)?new Uint8Array(fs.readFileSync(p)):null;
+}}};
+http.createServer(async(req,res)=>{try{
+ const result=await worker.fetch(new Request('http://localhost:'+port+req.url,{method:req.method}),env);
+ res.writeHead(result.status,Object.fromEntries(result.headers));res.end(Buffer.from(await result.arrayBuffer()));
+}catch(e){res.writeHead(500);res.end(e.message)}}).listen(port,'0.0.0.0',()=>console.log('http://localhost:'+port));

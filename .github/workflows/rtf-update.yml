@@ -1,0 +1,55 @@
+name: RTF update voorbereiden
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: RTF-pad in de repository
+        required: true
+        default: sources/studiebijbel-2026.rtf
+permissions:
+  contents: read
+jobs:
+  convert:
+    if: github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      RTF_SOURCE: ${{ inputs.source }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Bronpad controleren
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          root=Path.cwd().resolve()
+          source=(root/os.environ['RTF_SOURCE']).resolve()
+          if root not in source.parents or source.suffix.lower()!='.rtf' or not source.is_file():
+              raise SystemExit('RTF moet een bestand binnen de repository zijn')
+          PY
+      - name: Regressiecontroles
+        run: |
+          set -o pipefail
+          python3 -m unittest discover -s tests -v 2>&1 | tee "$RUNNER_TEMP/unit-tests.txt"
+      - name: Conversie en onafhankelijke broncontrole
+        run: |
+          python3 build/update_rtf.py --source "$RTF_SOURCE" --baseline . --output "$RUNNER_TEMP/wiki-super-update"
+          python3 build/verify_update.py --source "$RTF_SOURCE" --baseline . --site "$RUNNER_TEMP/wiki-super-update" --report "$RUNNER_TEMP/wiki-super-update/reports/verification.json"
+          node build/make_worker.js "$RUNNER_TEMP/wiki-super-update"
+          cp "$RUNNER_TEMP/unit-tests.txt" "$RUNNER_TEMP/wiki-super-update/reports/"
+      - name: Herhaling controleren
+        run: |
+          python3 build/update_rtf.py --source "$RTF_SOURCE" --baseline "$RUNNER_TEMP/wiki-super-update" --output "$RUNNER_TEMP/wiki-super-repeat"
+          python3 build/check_repeat.py "$RUNNER_TEMP/wiki-super-update" "$RUNNER_TEMP/wiki-super-repeat"
+      - name: Downloadbare site en herstelkopie
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: wiki-super-rtf-controle
+          path: |
+            ${{ runner.temp }}/wiki-super-update/data/
+            ${{ runner.temp }}/wiki-super-update/site/
+            ${{ runner.temp }}/wiki-super-update/worker/
+            ${{ runner.temp }}/wiki-super-update/reports/
+          retention-days: 30

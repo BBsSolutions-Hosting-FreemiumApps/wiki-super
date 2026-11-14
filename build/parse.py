@@ -1,12 +1,12 @@
 # Stap 1: lees de v9-tekstbestanden (alleen lezen) en maak verzen, kopjes, profielen en aantekeningen.
 import re, json, unicodedata, os
-SRC='/workspace/elohim/kennis-v9/'
-OUT=os.path.dirname(__file__)+'/tmp/'
+SRC=os.environ.get('SBW_SOURCE_DIR','/workspace/elohim/kennis-v9/')+'/'
+OUT=os.environ.get('SBW_TMP_DIR',os.path.dirname(__file__)+'/tmp/')+'/'
 os.makedirs(OUT,exist_ok=True)
 BOOKS=["Genesis","Exodus","Leviticus","Numeri","Deuteronomium","Jozua","Richteren","Ruth","1 Samu-el","2 Samu-el","1 Koningen","2 Koningen","1 Kronieken","2 Kronieken","Ezra","Nehemia","Esther","Job","Psalm","Spreuken","Prediker","Hooglied","Jesaja","Jeremia","Klaagliederen","Ezechi-el","Dani-el","Hosea","Jo-el","Amos","Obadja","Jona","Micha","Nahum","Habakuk","Sefanja","Haggaï","Zacharia","Maleachi","Mattheus","Markus","Lukas","Johannes","Handelingen","Romeinen","1 Korinthie-ers","2 Korinthie-ers","Galaten","Efezie-ers","Filippie-ers","Kolossers","1 Thessalonikers","2 Thessalonikers","1 Timotheus","2 Timotheus","Titus","Filémon","Hebree-en","Jakobus","1 Petrus","2 Petrus","1 Johannes","2 Johannes","3 Johannes","Judas","Openbaring"]
 BI={b:i for i,b in enumerate(BOOKS)}
 BRX='|'.join(re.escape(b) for b in sorted(BOOKS,key=len,reverse=True))
-HDR=re.compile(r'^('+BRX+r') (\d+):(\d+)(?=[\s\[{|]|$)(.*)$')
+HDR=re.compile(r'^\s*(?:\|\s*)?('+BRX+r') (\d+):(\d+)(?=[abc]?(?:[\s\[{|]|$))(.*)$')
 PIPE_REF=re.compile(r'\|\s*('+BRX+r') (\d+):(\d+)')
 REF_ANY=re.compile(r'('+BRX+r'|Henoch|Jubilee-en|Jasher|[1-4] ?[A-Z][a-z]+) \d+:\d+')
 
@@ -14,34 +14,40 @@ lines=open(SRC+'studiebijbel-v9.txt',encoding='utf-8').read().split('\n')
 verses=[]; headings=[]; profiles=[]
 cur_head=None; cur_sub=None
 cur=None  # list of verse dicts in current header group
-grp_lines=[]; profile=None
+grp_lines=[]; grp_numbers=[]; profile=None
 def flush():
-    global cur,grp_lines
+    global cur,grp_lines,grp_numbers
     if cur is None: return
     # verdeel regels over de verzen in de groep: '|' aan het begin opent het volgende vers
-    parts=[[]]
-    for l in grp_lines:
+    parts=[[]]; positions=[[]]
+    for l,number in zip(grp_lines,grp_numbers):
         s=l.lstrip('\t ')
         if s.startswith('|') and len(parts)<len(cur):
-            parts.append([re.sub(r'^(\t*) +',r'\1',l.replace('|','',1)).rstrip()])
-        else: parts[-1].append(l.rstrip())
-    while len(parts)<len(cur): parts.append([])
-    for v,p in zip(cur,parts):
+            parts.append([re.sub(r'^(\t*) +',r'\1',l.replace('|','',1)).rstrip()]); positions.append([number])
+        else:
+            parts[-1].append(l.rstrip()); positions[-1].append(number)
+    while len(parts)<len(cur): parts.append([]); positions.append([])
+    for v,p,ns in zip(cur,parts,positions):
+        v['source_lines']=ns
         while p and not p[-1].strip(): p.pop()
         while p and not p[0].strip(): p.pop(0)
         v['raw']=p
         verses.append(v)
-    cur=None; grp_lines=[]
+    cur=None; grp_lines=[]; grp_numbers=[]
 SKIP_LINE=re.compile(r'^\s*(#\S|\[[!#?@§]\]|\[\{|\{[A-Z]\}|\[[A-Z][A-Za-z/]{0,7}\]\s*($|<|[A-Z\[]))')
 META_LINE=re.compile(r'^\s*(>|Tijdbeslag|\[Conversatie|NTB#|\[?overeenstemmen)|NTB#|\{\d+x\}|overeenstemmen \[|https?://|www\.|biblehub')
 for ln,l in enumerate(lines):
     m=HDR.match(l)
     if m:
-        flush(); profile=None
+        continuation=cur is not None and not any(x.strip() for x in grp_lines)
+        if not continuation: flush()
+        profile=None
         b,c,v,rest=m.group(1),int(m.group(2)),int(m.group(3)),m.group(4)
-        refs=[(b,c,v)]+[(x,int(y),int(z)) for x,y,z in PIPE_REF.findall(rest)]
+        refs=[(b,c,v)]+[(x,int(y),int(z)) for x,y,z in PIPE_REF.findall(re.sub(r'\{[^}]*\}|\[[^]]*\]', '', rest))]
         par=[r.group(0) for r in re.finditer(r'\{('+BRX+r') \d+:\d+(?:-\d+)?\}',rest)]
-        cur=[{'b':BI[x],'c':y,'v':z,'h':len(headings)-1,'par':[p.strip('{}') for p in par] if i==0 else [],'line':ln+1} for i,(x,y,z) in enumerate(refs)]
+        added=[{'b':BI[x],'c':y,'v':z,'h':len(headings)-1,'par':[p.strip('{}') for p in par] if i==0 else [],'line':ln+1} for i,(x,y,z) in enumerate(refs)]
+        if continuation: cur.extend(added)
+        else: cur=added
         continue
     if l.startswith('(#)'):
         flush(); profile=None
@@ -70,7 +76,7 @@ for ln,l in enumerate(lines):
         continue
     if cur is not None:
         if SKIP_LINE.match(l) or META_LINE.search(l): continue
-        grp_lines.append(l)
+        grp_lines.append(l); grp_numbers.append(ln+1)
 flush()
 
 def clean_line(l):
@@ -104,7 +110,7 @@ for i,v in enumerate(verses):
             if j<len(an): anns.append((len(txt),len(rebuilt),an[j][1]))
         txt.append(re.sub(r'[ ]{2,}',' ',rebuilt).rstrip())
     while txt and not txt[-1].strip(): txt.pop()
-    out.append({'s':i,'b':v['b'],'c':v['c'],'v':v['v'],'h':v['h'],'par':v['par'],'t':txt,'ann':anns,'line':v['line']})
+    out.append({'s':i,'b':v['b'],'c':v['c'],'v':v['v'],'h':v['h'],'par':v['par'],'t':txt,'ann':anns,'line':v['line'],'source_lines':v['source_lines']})
 
 # aantekeningen
 notes=[]

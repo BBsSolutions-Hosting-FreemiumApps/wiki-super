@@ -1,0 +1,47 @@
+name: Cloudflare RTF preview
+on:
+  push:
+    branches: [update-rtf-2026-11-14]
+    paths:
+      - .github/workflows/cloudflare-preview.yml
+      - build/deploy_preview.py
+      - worker/worker.mjs
+      - worker/release.json
+      - data/**
+      - site/**
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: wiki-super-rtf-preview
+  cancel-in-progress: false
+jobs:
+  preview:
+    if: github.ref == 'refs/heads/update-rtf-2026-11-14'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Controleer volledige bron en bestaande identiteiten
+        run: |
+          mkdir -p "$RUNNER_TEMP/baseline"
+          tar -xzf reports/rtf-2026-11-14/baseline-data.tar.gz -C "$RUNNER_TEMP/baseline"
+          python3 build/verify_update.py --site . --baseline "$RUNNER_TEMP/baseline" --source sources/studiebijbel-2026.rtf --report work/verification.json
+      - name: Controleer geheim en publiceer afzonderlijke preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo 'Voeg repositorysecret CLOUDFLARE_API_TOKEN toe en voer deze workflow opnieuw uit.'
+            exit 1
+          fi
+          python3 build/deploy_preview.py --release . --execute --report work/deployment.json
+      - name: Bewaar controles en preview-adres
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: wiki-super-preview-controle
+          path: work/*.json
+          retention-days: 30
