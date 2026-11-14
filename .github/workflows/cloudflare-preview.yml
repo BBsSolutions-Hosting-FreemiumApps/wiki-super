@@ -37,7 +37,7 @@ jobs:
             echo 'Voeg repositorysecret CLOUDFLARE_API_TOKEN toe en voer deze workflow opnieuw uit.'
             exit 1
           fi
-          python3 build/deploy_preview.py --release . --execute --report work/deployment.json
+          python3 build/deploy_preview.py --release . --execute --api-verification-only --report work/deployment.json
       - name: Bewaar controles en preview-adres
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

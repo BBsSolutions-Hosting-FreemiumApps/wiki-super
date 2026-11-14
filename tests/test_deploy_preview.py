@@ -13,6 +13,7 @@ from deploy_preview import deploy, PRODUCTION_NS, canonical_script
 
 class Response(io.BytesIO):
     headers={}
+    status=200
     def __enter__(self):return self
     def __exit__(self,*args):self.close()
 
@@ -55,6 +56,9 @@ class PreviewSafetyTests(unittest.TestCase):
             elif '/storage/kv/namespaces?' in url:value=[{'id':PRODUCTION_NS,'title':'production'},{'id':'preview-kv','title':'studieb-wiki-rtf-preview-data'}]
             elif url.endswith('/workers/scripts/studieb-wiki'):return Response(b'original production worker')
             elif '/preview-kv/values/' in url:
+                import urllib.parse
+                key=urllib.parse.unquote(url.split('/values/',1)[1])
+                if key in stored:return Response(stored[key].encode())
                 raise urllib.error.HTTPError(url,404,'missing',{},None)
             elif url.endswith('/preview-kv/bulk'):
                 stored.update({x['key']:x['value'] for x in json.loads(req.data)});value={'successful_key_count':1,'unsuccessful_keys':[]}

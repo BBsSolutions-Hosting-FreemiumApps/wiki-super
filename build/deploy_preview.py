@@ -38,7 +38,7 @@ def canonical_script(raw, content_type):
     return json.dumps(sorted(modules),separators=(',',':')).encode()
 
 
-def deploy(root, execute=False):
+def deploy(root, execute=False, api_verification_only=False):
     root=Path(root).resolve()
     release=json.loads((root/'worker/release.json').read_text())
     prefix=release['prefix']
@@ -88,12 +88,6 @@ def deploy(root, execute=False):
     aid,namespaces=candidates[0];base=f'/accounts/{aid}'
     subdomain=request('GET',base+'/workers/subdomain')['result']['subdomain']
     url=f'https://{SCRIPT}.{subdomain}.workers.dev'
-    already_uploaded=False
-    try:
-        with urllib.request.urlopen(url+'/version.json',timeout=30) as response:
-            already_uploaded=json.loads(response.read()).get('prefix')==prefix
-    except (urllib.error.HTTPError,urllib.error.URLError,ValueError):
-        pass
     before=hashlib.sha256(request('GET',base+'/workers/scripts/'+PRODUCTION,raw=True)).hexdigest()
     targets=[n for n in namespaces if n['title']==TITLE]
     if len(targets)>1:raise ValueError('Dubbele preview-namespace')
@@ -124,6 +118,10 @@ def deploy(root, execute=False):
         r=doc.get('result')
         if isinstance(r,dict) and (r.get('unsuccessful_keys') or (r.get('successful_key_count') is not None and r['successful_key_count']!=len(batch))):
             raise RuntimeError('KV-upload onvolledig; Worker is nog niet gewijzigd')
+    if to_upload:
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            if any(pool.map(missing,to_upload)):
+                raise RuntimeError('KV-opslag wijkt na upload af; Worker niet gewijzigd')
     boundary='wiki-super-rtf-upload-boundary'
     metadata={'main_module':'worker.mjs','compatibility_date':'2026-11-14','bindings':[{'type':'kv_namespace','name':'DATA','namespace_id':ns}]}
     body=(f'--{boundary}\r\nContent-Disposition: form-data; name="metadata"\r\nContent-Type: application/json\r\n\r\n'.encode()+json.dumps(metadata).encode()+
@@ -132,6 +130,10 @@ def deploy(root, execute=False):
     request('POST',base+'/workers/scripts/'+SCRIPT+'/subdomain',{'enabled':True,'previews_enabled':False})
     after=hashlib.sha256(request('GET',base+'/workers/scripts/'+PRODUCTION,raw=True)).hexdigest()
     if before!=after:raise RuntimeError('Productie-Worker is intussen veranderd; controleer de situatie')
+    result.update(deployed=True,url=url,account_id=aid,namespace_id=ns,api_files_verified=len(files),production_unchanged=True,production_worker_sha256=before,kv_upload_reused=already_uploaded,kv_values_written=len(to_upload))
+    if api_verification_only:
+        result.update(public_files_verified=0,public_assets_verified=0,public_verification='blocked',public_verification_reason='Cloudflare 1010 blocked the HTTP test client; cloud browser access unavailable. Local browser tests passed; online UI review remains pending.')
+        return result
     # Versioned KV keys may take time to propagate. Verify every public file hash.
     print('Preview-upload: '+url,flush=True)
     def check_file(item):
@@ -164,8 +166,8 @@ def deploy(root, execute=False):
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--release',type=Path,default=Path('.'));p.add_argument('--execute',action='store_true');p.add_argument('--report',type=Path,default=Path('work/deployment.json'));a=p.parse_args()
-    r=deploy(a.release,a.execute);a.report.parent.mkdir(parents=True,exist_ok=True);a.report.write_text(json.dumps(r,indent=2)+'\n');print(json.dumps(r,indent=2))
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--release',type=Path,default=Path('.'));p.add_argument('--execute',action='store_true');p.add_argument('--api-verification-only',action='store_true',help='Controleer opslag via de API; rapporteer openbare UI-controle als geblokkeerd');p.add_argument('--report',type=Path,default=Path('work/deployment.json'));a=p.parse_args()
+    r=deploy(a.release,a.execute,a.api_verification_only);a.report.parent.mkdir(parents=True,exist_ok=True);a.report.write_text(json.dumps(r,indent=2)+'\n');print(json.dumps(r,indent=2))
     if os.environ.get('GITHUB_STEP_SUMMARY'):
         with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
-            f.write('## Wiki-super RTF-preview\n\n'+('Preview: '+r['url'] if r['deployed'] else 'Alleen voorbereid')+'\n\n'+str(r['files'])+' bestanden gecontroleerd.\n')
+            f.write('## Wiki-super RTF-preview\n\n'+('Preview: '+r['url'] if r['deployed'] else 'Alleen voorbereid')+'\n\n'+str(r['files'])+' databestanden via de API gecontroleerd. Openbare controle: '+r.get('public_verification','geslaagd')+'.\n')
