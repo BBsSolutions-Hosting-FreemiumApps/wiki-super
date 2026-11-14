@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+import urllib.error
 from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'build'))
 from deploy_preview import deploy, PRODUCTION_NS, canonical_script
@@ -53,6 +54,8 @@ class PreviewSafetyTests(unittest.TestCase):
             elif '/accounts?' in url:value=[{'id':'account'}]
             elif '/storage/kv/namespaces?' in url:value=[{'id':PRODUCTION_NS,'title':'production'},{'id':'preview-kv','title':'studieb-wiki-rtf-preview-data'}]
             elif url.endswith('/workers/scripts/studieb-wiki'):return Response(b'original production worker')
+            elif '/preview-kv/values/' in url:
+                raise urllib.error.HTTPError(url,404,'missing',{},None)
             elif url.endswith('/preview-kv/bulk'):
                 stored.update({x['key']:x['value'] for x in json.loads(req.data)});value={'successful_key_count':1,'unsuccessful_keys':[]}
             elif url.endswith('/workers/scripts/studieb-wiki-rtf-preview'):

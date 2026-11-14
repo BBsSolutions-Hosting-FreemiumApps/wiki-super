@@ -1,5 +1,6 @@
 test_default_prepares_without_network (test_deploy_preview.PreviewSafetyTests.test_default_prepares_without_network) ... ok
-test_deployment_writes_only_isolated_preview (test_deploy_preview.PreviewSafetyTests.test_deployment_writes_only_isolated_preview) ... ok
+test_deployment_writes_only_isolated_preview (test_deploy_preview.PreviewSafetyTests.test_deployment_writes_only_isolated_preview) ... Preview-upload: https://studieb-wiki-rtf-preview.test.workers.dev
+ERROR
 test_hash_failure_prevents_all_network_and_writes (test_deploy_preview.PreviewSafetyTests.test_hash_failure_prevents_all_network_and_writes) ... ok
 test_multipart_random_boundary_is_not_a_production_change (test_deploy_preview.PreviewSafetyTests.test_multipart_random_boundary_is_not_a_production_change) ... ok
 test_binary_destinations_do_not_consume_following_text (test_rtf_parser.RTFParserTests.test_binary_destinations_do_not_consume_following_text) ... ok
@@ -25,7 +26,36 @@ test_braced_parallel_citations_not_new_verses (test_update.SourceGroupingTests.t
 test_multiline_headers_split_body_once (test_update.SourceGroupingTests.test_multiline_headers_split_body_once) ... ok
 test_verse_subdivisions_keep_source (test_update.SourceGroupingTests.test_verse_subdivisions_keep_source) ... ok
 
+======================================================================
+ERROR: test_deployment_writes_only_isolated_preview (test_deploy_preview.PreviewSafetyTests.test_deployment_writes_only_isolated_preview)
 ----------------------------------------------------------------------
-Ran 26 tests in 7.378s
+Traceback (most recent call last):
+  File "/workspace/wiki-super/tests/test_deploy_preview.py", line 68, in test_deployment_writes_only_isolated_preview
+    p=Path(t);self.fixture(p);result=deploy(p,True)
+                                     ^^^^^^^^^^^^^^
+  File "/workspace/wiki-super/build/deploy_preview.py", line 151, in deploy
+    checked=list(pool.map(check_file,release['files'].items()))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/concurrent/futures/_base.py", line 619, in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/concurrent/futures/_base.py", line 317, in _result_or_cancel
+    return fut.result(timeout)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/wiki-super/build/deploy_preview.py", line 144, in check_file
+    last='HTTP '+str(r.status)+'; type '+r.headers.get('Content-Type','')+'; hash '+hashlib.sha256(raw).hexdigest()+'; eerste bytes '+repr(raw[:100])
+                     ^^^^^^^^
+AttributeError: 'Response' object has no attribute 'status'
 
-OK
+----------------------------------------------------------------------
+Ran 26 tests in 6.412s
+
+FAILED (errors=1)

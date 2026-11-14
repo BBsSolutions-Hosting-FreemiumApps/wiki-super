@@ -56,7 +56,7 @@ def deploy(root, execute=False):
     if not execute:return result
     token=os.environ.get('CLOUDFLARE_API_TOKEN','').strip()
     if not token:raise ValueError('GitHub Actions secret CLOUDFLARE_API_TOKEN ontbreekt')
-    def request(method,path,body=None,content_type='application/json',raw=False):
+    def request(method,path,body=None,content_type='application/json',raw=False,allow_missing=False):
         if isinstance(body,(dict,list)):body=json.dumps(body,separators=(',',':')).encode()
         req=urllib.request.Request('https://api.cloudflare.com/client/v4'+path,data=body,headers={'Authorization':'Bearer '+token,'Content-Type':content_type},method=method)
         try:
@@ -64,6 +64,7 @@ def deploy(root, execute=False):
                 data=r.read()
                 remote_content_type=r.headers.get('Content-Type','')
         except urllib.error.HTTPError as e:
+            if allow_missing and e.code==404:return None
             raise RuntimeError(f'Cloudflare HTTP {e.code} bij {method} {path}') from None
         if raw:return canonical_script(data,remote_content_type)
         doc=json.loads(data)
@@ -98,8 +99,22 @@ def deploy(root, execute=False):
     if len(targets)>1:raise ValueError('Dubbele preview-namespace')
     ns=targets[0]['id'] if targets else request('POST',base+'/storage/kv/namespaces',{'title':TITLE})['result']['id']
     if ns==PRODUCTION_NS:raise ValueError('Preview mag niet naar productiedata schrijven')
+    # Read existing versioned values before writing: reruns never spend KV writes
+    # on an unchanged release, even while its public hostname is propagating.
+    from concurrent.futures import ThreadPoolExecutor
+    def missing(entry):
+        key=urllib.parse.quote(entry['key'],safe='')
+        actual=request('GET',base+f'/storage/kv/namespaces/{ns}/values/'+key,raw=True,allow_missing=True)
+        expected=entry['value'].encode()
+        return actual is None or hashlib.sha256(actual).digest()!=hashlib.sha256(expected).digest()
+    if targets:
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            flags=list(pool.map(missing,files))
+        to_upload=[entry for entry,needed in zip(files,flags) if needed]
+    else:to_upload=files
+    already_uploaded=not to_upload
     batches=[];batch=[];size=0
-    for entry in files:
+    for entry in to_upload:
         length=len(json.dumps(entry,ensure_ascii=False).encode())
         if size+length>4_000_000 and batch:batches.append(batch);batch=[];size=0
         batch.append(entry);size+=length
@@ -118,17 +133,20 @@ def deploy(root, execute=False):
     after=hashlib.sha256(request('GET',base+'/workers/scripts/'+PRODUCTION,raw=True)).hexdigest()
     if before!=after:raise RuntimeError('Productie-Worker is intussen veranderd; controleer de situatie')
     # Versioned KV keys may take time to propagate. Verify every public file hash.
-    from concurrent.futures import ThreadPoolExecutor
+    print('Preview-upload: '+url,flush=True)
     def check_file(item):
         filename,sha=item
+        last='onbekend'
         for attempt in range(5):
             try:
-                with urllib.request.urlopen(url+'/data/'+filename,timeout=60) as r:raw=r.read()
+                with urllib.request.urlopen(url+'/data/'+filename,timeout=60) as r:
+                    raw=r.read()
+                    last='HTTP '+str(r.status)+'; type '+r.headers.get('Content-Type','')+'; hash '+hashlib.sha256(raw).hexdigest()+'; eerste bytes '+repr(raw[:100])
                 if hashlib.sha256(raw).hexdigest()==sha:return filename
-            except urllib.error.HTTPError:
-                pass
+            except urllib.error.HTTPError as error:
+                last='HTTP '+str(error.code)+'; '+repr(error.read()[:160])
             if attempt<4:time.sleep(3)
-        raise RuntimeError('Gepubliceerde data niet bevestigd: '+filename)
+        raise RuntimeError('Gepubliceerde data niet bevestigd: '+filename+'; '+last)
     with ThreadPoolExecutor(max_workers=8) as pool:
         checked=list(pool.map(check_file,release['files'].items()))
     # Check the exact front-end assets that passed the local browser tests.
