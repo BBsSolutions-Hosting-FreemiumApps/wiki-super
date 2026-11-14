@@ -17,7 +17,7 @@ class Response(io.BytesIO):
 class PreviewSafetyTests(unittest.TestCase):
     def fixture(self,p):
         (p/'worker').mkdir();(p/'data').mkdir()
-        (p/'worker/worker.mjs').write_text('export default {}')
+        (p/'worker/worker.mjs').write_text('const ASSETS={};\nconst PREFIX="rtf-123456/";\nexport default {}')
         raw=b'{"items":[]}'
         (p/'data/index.json').write_bytes(raw)
         (p/'worker/release.json').write_text(json.dumps({'prefix':'rtf-123456/','files':{'index.json':hashlib.sha256(raw).hexdigest()}}))
@@ -35,7 +35,9 @@ class PreviewSafetyTests(unittest.TestCase):
     def test_deployment_writes_only_isolated_preview(self):
         writes=[];stored={}
         def api(req,timeout=None):
-            if isinstance(req,str):return Response(stored['rtf-123456/index.json'].encode())
+            if isinstance(req,str):
+                if req.endswith('/version.json'):return Response(b'{"prefix":"older/"}')
+                return Response(stored['rtf-123456/index.json'].encode())
             url=req.full_url;method=req.method
             if method!='GET':writes.append((method,url))
             if url.endswith('/user/tokens/verify'):value={'status':'active'}

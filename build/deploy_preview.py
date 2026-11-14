@@ -66,6 +66,14 @@ def deploy(root, execute=False):
         if any(n['id']==PRODUCTION_NS for n in namespaces):candidates.append((aid,namespaces))
     if len(candidates)!=1:raise ValueError('Geen uniek account met de bestaande wiki-super-namespace gevonden')
     aid,namespaces=candidates[0];base=f'/accounts/{aid}'
+    subdomain=request('GET',base+'/workers/subdomain')['result']['subdomain']
+    url=f'https://{SCRIPT}.{subdomain}.workers.dev'
+    already_uploaded=False
+    try:
+        with urllib.request.urlopen(url+'/version.json',timeout=30) as response:
+            already_uploaded=json.loads(response.read()).get('prefix')==prefix
+    except (urllib.error.HTTPError,urllib.error.URLError,ValueError):
+        pass
     before=hashlib.sha256(request('GET',base+'/workers/scripts/'+PRODUCTION,raw=True)).hexdigest()
     targets=[n for n in namespaces if n['title']==TITLE]
     if len(targets)>1:raise ValueError('Dubbele preview-namespace')
@@ -77,7 +85,7 @@ def deploy(root, execute=False):
         if size+length>4_000_000 and batch:batches.append(batch);batch=[];size=0
         batch.append(entry);size+=length
     if batch:batches.append(batch)
-    for batch in batches:
+    for batch in ([] if already_uploaded else batches):
         doc=request('PUT',base+f'/storage/kv/namespaces/{ns}/bulk',batch)
         r=doc.get('result')
         if isinstance(r,dict) and (r.get('unsuccessful_keys') or (r.get('successful_key_count') is not None and r['successful_key_count']!=len(batch))):
@@ -88,8 +96,6 @@ def deploy(root, execute=False):
           f'\r\n--{boundary}\r\nContent-Disposition: form-data; name="worker.mjs"; filename="worker.mjs"\r\nContent-Type: application/javascript+module\r\n\r\n'.encode()+(root/'worker/worker.mjs').read_bytes()+f'\r\n--{boundary}--\r\n'.encode())
     request('PUT',base+'/workers/scripts/'+SCRIPT,body,'multipart/form-data; boundary='+boundary)
     request('POST',base+'/workers/scripts/'+SCRIPT+'/subdomain',{'enabled':True,'previews_enabled':False})
-    subdomain=request('GET',base+'/workers/subdomain')['result']['subdomain']
-    url=f'https://{SCRIPT}.{subdomain}.workers.dev'
     after=hashlib.sha256(request('GET',base+'/workers/scripts/'+PRODUCTION,raw=True)).hexdigest()
     if before!=after:raise RuntimeError('Productie-Worker is intussen veranderd; controleer de situatie')
     # Versioned KV keys may take time to propagate. Verify every public file hash.
@@ -106,7 +112,17 @@ def deploy(root, execute=False):
         raise RuntimeError('Gepubliceerde data niet bevestigd: '+filename)
     with ThreadPoolExecutor(max_workers=8) as pool:
         checked=list(pool.map(check_file,release['files'].items()))
-    result.update(deployed=True,url=url,account_id=aid,namespace_id=ns,public_files_verified=len(checked),production_unchanged=True,production_worker_sha256=before)
+    # Check the exact front-end assets that passed the local browser tests.
+    worker=(root/'worker/worker.mjs').read_text()
+    assets=json.loads(worker.split('const ASSETS=',1)[1].split(';\nconst PREFIX=',1)[0])
+    for asset,(_,expected) in assets.items():
+        with urllib.request.urlopen(url+('/' if asset=='/index.html' else asset),timeout=60) as response:
+            actual=response.read()
+            if 'noindex' not in response.headers.get('X-Robots-Tag',''):
+                raise RuntimeError('Preview is niet als noindex gemarkeerd')
+        if hashlib.sha256(actual).digest()!=hashlib.sha256(expected.encode()).digest():
+            raise RuntimeError('Gepubliceerd sitebestand wijkt af: '+asset)
+    result.update(deployed=True,kv_upload_reused=already_uploaded,public_assets_verified=len(assets),url=url,account_id=aid,namespace_id=ns,public_files_verified=len(checked),production_unchanged=True,production_worker_sha256=before)
     return result
 
 

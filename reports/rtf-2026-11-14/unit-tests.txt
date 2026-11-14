@@ -25,6 +25,6 @@ test_multiline_headers_split_body_once (test_update.SourceGroupingTests.test_mul
 test_verse_subdivisions_keep_source (test_update.SourceGroupingTests.test_verse_subdivisions_keep_source) ... ok
 
 ----------------------------------------------------------------------
-Ran 25 tests in 6.605s
+Ran 25 tests in 6.497s
 
 OK
